@@ -2,6 +2,8 @@
 
 An AI-powered resume scoring application built with Next.js that evaluates resumes using OpenRouter API and provides actionable feedback.
 
+[![ATS Resume Scorer Demo](public/ATS-Resume-Scorer.gif)](public/ATS-Resume-Scorer.mp4)
+
 ## Features
 
 - 📄 Upload PDF or TXT resumes
