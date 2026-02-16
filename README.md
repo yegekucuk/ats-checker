@@ -65,30 +65,6 @@ npm run dev
    - Experience Relevance
    - Skills Relevance
 
-### API Key Management
-
-- **OpenRouter**: Enter your API key when prompted (stored only in browser memory)
-- **Security**: API key is never saved to disk; it is sent to this app's server API route for forwarding to OpenRouter
-- **Update**: Click "Update API Key" button in the header to change your key
-- **Privacy**: Key is cleared when you close the browser tab
-
-### Model Providers
-
-**OpenRouter (Cloud)**
-- Requires API key configuration (entered in UI modal)
-- No local installation needed
-- Available models:
-  - **Gemini 2.0 Flash** - Google's latest fast model
-  - **GPT OSS 20B** - Large model with comprehensive analysis
-  - **Grok 4.1 Fast** - Fast model from xAI
-
-**Ollama (Local)**
-- Requires Ollama to be installed and running
-- Models run on your local machine
-- All your installed Ollama models will appear automatically
-- More privacy, no API costs
-- To install Ollama models: `ollama pull <model-name>`
-
 ## Technology Stack
 
 - **Framework**: Next.js 15 (App Router)
@@ -99,18 +75,22 @@ npm run dev
   - Ollama (Local)
 - **PDF Processing**: pdf-parse-fork
 
-## API Configuration
+## AI Providers
 
 The app supports two AI providers:
 
 ### OpenRouter (Cloud Models)
-- Three free models available:
-  - **Gemini 2.0 Flash** - Google's latest fast model
-  - **GPT OSS 20B** - Large model with comprehensive analysis  
-  - **Grok 4.1 Fast** - Fast model from xAI
-- API key entered via UI modal (not stored permanently)
-- Key stored in browser memory only
-- All free tier models
+OpenRouter returns these free models (kept in the order shown below):
+1. **Trinity Large Preview** (arcee-ai/trinity-large-preview:free)
+2. **Step 3.5 Flash** (stepfun/step-3.5-flash:free)
+3. **GLM 4.5 Air** (z-ai/glm-4.5-air:free)
+4. **DeepSeek R1 0528** (deepseek/deepseek-r1-0528:free)
+5. **Nemotron 3 Nano 30B A3B** (nvidia/nemotron-3-nano-30b-a3b:free)
+6. **GPT OSS 120B** (openai/gpt-oss-120b:free)
+7. **Llama 3.3 70B Instruct** (meta-llama/llama-3.3-70b-instruct:free)
+8. **Dolphin Mistral 24B Venice Edition** (cognitivecomputations/dolphin-mistral-24b-venice-edition:free)
+
+**Security Note**: API key is entered via UI modal and it is not stored *anywhere*.
 
 ### Ollama (Local Models)
 - Automatically detects all installed Ollama models
@@ -118,15 +98,7 @@ The app supports two AI providers:
 - Ollama must be running on `http://localhost:11434`
 - Install models with: `ollama pull llama2` (or any model)
 
-The app will automatically fetch available models from both providers and display them sorted alphabetically in the UI.
-
-## Security & Privacy
-
-- **No Environment Files**: API keys are not stored in `.env` files
-- **Frontend Memory Only**: API key stored in React state (memory only)
-- **No Server Storage**: Keys are never saved to disk or database
-- **Temporary**: Key cleared when browser tab is closed
-- **Server Route Forwarding**: API key is posted to this app's `/api/score` route and forwarded to OpenRouter for the request
+The app will automatically fetch available models from both providers and preserve the order supplied by the API, so OpenRouter models stay in the sequence listed above.
 
 ## License
 
