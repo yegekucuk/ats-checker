@@ -19,6 +19,9 @@ interface Model {
   provider: 'openrouter' | 'ollama';
 }
 
+const normalizeApiKeyInput = (value: string) => value.trim().replace(/^Bearer\s+/i, '');
+const isLikelyOpenRouterApiKey = (value: string) => /^sk-or-v1-[A-Za-z0-9._-]+$/.test(value);
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
@@ -42,13 +45,10 @@ export default function Home() {
       const data = await response.json();
       
       if (data.models) {
-        const sortedModels = data.models.sort((a: Model, b: Model) => 
-          a.name.localeCompare(b.name)
-        );
-        setModels(sortedModels);
+        setModels(data.models);
         
         // Set default model based on selected provider
-        const providerModels = sortedModels.filter((m: Model) => m.provider === selectedProvider);
+        const providerModels = data.models.filter((m: Model) => m.provider === selectedProvider);
         if (providerModels.length > 0) {
           setSelectedModel(providerModels[0].id);
         }
@@ -56,11 +56,16 @@ export default function Home() {
     } catch (err) {
       console.error('Failed to fetch models:', err);
       setModels([
-        { id: 'openai/gpt-oss-20b:free', name: 'GPT OSS 20B (OpenRouter)', provider: 'openrouter' },
-        { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (OpenRouter)', provider: 'openrouter' },
-        { id: 'x-ai/grok-4.1-fast:free', name: 'Grok 4.1 Fast (OpenRouter)', provider: 'openrouter' }
+        { id: 'arcee-ai/trinity-large-preview:free', name: 'Trinity Large Preview (OpenRouter)', provider: 'openrouter' },
+        { id: 'stepfun/step-3.5-flash:free', name: 'Step 3.5 Flash (OpenRouter)', provider: 'openrouter' },
+        { id: 'z-ai/glm-4.5-air:free', name: 'GLM 4.5 Air (OpenRouter)', provider: 'openrouter' },
+        { id: 'deepseek/deepseek-r1-0528:free', name: 'DeepSeek R1 0528 (OpenRouter)', provider: 'openrouter' },
+        { id: 'nvidia/nemotron-3-nano-30b-a3b:free', name: 'Nemotron 3 Nano 30B A3B (OpenRouter)', provider: 'openrouter' },
+        { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B (OpenRouter)', provider: 'openrouter' },
+        { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B Instruct (OpenRouter)', provider: 'openrouter' },
+        { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', name: 'Dolphin Mistral 24B Venice Edition (OpenRouter)', provider: 'openrouter' }
       ]);
-      setSelectedModel('openai/gpt-oss-20b:free');
+      setSelectedModel('arcee-ai/trinity-large-preview:free');
     } finally {
       setModelsLoading(false);
     }
@@ -93,9 +98,18 @@ export default function Home() {
 
     // Check if OpenRouter model is selected and API key is missing
     const selectedModelData = models.find(m => m.id === selectedModel);
-    if (selectedModelData?.provider === 'openrouter' && !apiKey) {
-      setShowApiKeyModal(true);
-      return;
+    if (selectedModelData?.provider === 'openrouter') {
+      const normalizedApiKey = normalizeApiKeyInput(apiKey);
+
+      if (!normalizedApiKey) {
+        setShowApiKeyModal(true);
+        return;
+      }
+
+      if (!isLikelyOpenRouterApiKey(normalizedApiKey)) {
+        setError('Invalid OpenRouter API key format. It should start with "sk-or-v1-".');
+        return;
+      }
     }
 
     setLoading(true);
@@ -109,7 +123,7 @@ export default function Home() {
       formData.append('provider', selectedModelData?.provider || 'openrouter');
       
       if (selectedModelData?.provider === 'openrouter') {
-        formData.append('apiKey', apiKey);
+        formData.append('apiKey', normalizeApiKeyInput(apiKey));
       }
 
       const response = await fetch('/api/score', {
@@ -151,10 +165,18 @@ export default function Home() {
   };
 
   const handleSaveApiKey = () => {
-    if (tempApiKey.trim()) {
-      setApiKey(tempApiKey.trim());
+    const normalizedApiKey = normalizeApiKeyInput(tempApiKey);
+
+    if (normalizedApiKey) {
+      if (!isLikelyOpenRouterApiKey(normalizedApiKey)) {
+        setError('Invalid OpenRouter API key format. It should start with "sk-or-v1-".');
+        return;
+      }
+
+      setApiKey(normalizedApiKey);
       setShowApiKeyModal(false);
       setTempApiKey('');
+      setError('');
     }
   };
 

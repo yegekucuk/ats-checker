@@ -66,7 +66,7 @@ npm run dev
 ### API Key Management
 
 - **OpenRouter**: Enter your API key when prompted (stored only in browser memory)
-- **Security**: API key is never saved to disk or sent to any server except OpenRouter
+- **Security**: API key is never saved to disk; it is sent to this app's server API route for forwarding to OpenRouter
 - **Update**: Click "Update API Key" button in the header to change your key
 - **Privacy**: Key is cleared when you close the browser tab
 
@@ -121,10 +121,10 @@ The app will automatically fetch available models from both providers and displa
 ## Security & Privacy
 
 - **No Environment Files**: API keys are not stored in `.env` files
-- **Frontend Only**: API key stored in React state (memory only)
+- **Frontend Memory Only**: API key stored in React state (memory only)
 - **No Server Storage**: Keys are never saved to disk or database
 - **Temporary**: Key cleared when browser tab is closed
-- **Direct Communication**: API key sent directly to OpenRouter, never to our server
+- **Server Route Forwarding**: API key is posted to this app's `/api/score` route and forwarded to OpenRouter for the request
 
 ## License
 

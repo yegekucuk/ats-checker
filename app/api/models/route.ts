@@ -6,20 +6,50 @@ export async function GET() {
 
     // Add OpenRouter models
     models.push({
-      id: 'openai/gpt-oss-20b:free',
-      name: 'GPT OSS 20B (OpenRouter)',
+      id: 'arcee-ai/trinity-large-preview:free',
+      name: 'Trinity Large Preview',
       provider: 'openrouter'
     });
-    
+
     models.push({
-      id: 'google/gemini-2.0-flash-exp:free',
-      name: 'Gemini 2.0 Flash (OpenRouter)',
+      id: 'stepfun/step-3.5-flash:free',
+      name: 'Step 3.5 Flash',
       provider: 'openrouter'
     });
-    
+
     models.push({
-      id: 'x-ai/grok-4.1-fast:free',
-      name: 'Grok 4.1 Fast (OpenRouter)',
+      id: 'z-ai/glm-4.5-air:free',
+      name: 'GLM 4.5 Air',
+      provider: 'openrouter'
+    });
+
+    models.push({
+      id: 'deepseek/deepseek-r1-0528:free',
+      name: 'DeepSeek R1 0528',
+      provider: 'openrouter'
+    });
+
+    models.push({
+      id: 'nvidia/nemotron-3-nano-30b-a3b:free',
+      name: 'Nemotron 3 Nano 30B A3B',
+      provider: 'openrouter'
+    });
+
+    models.push({
+      id: 'openai/gpt-oss-120b:free',
+      name: 'ChatGPT OSS 120B',
+      provider: 'openrouter'
+    });
+
+    models.push({
+      id: 'meta-llama/llama-3.3-70b-instruct:free',
+      name: 'Llama 3.3 70B Instruct',
+      provider: 'openrouter'
+    });
+
+    models.push({
+      id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free',
+      name: 'Dolphin Mistral 24B Venice Edition',
       provider: 'openrouter'
     });
 
@@ -39,7 +69,7 @@ export async function GET() {
           ollamaData.models.forEach((model: any) => {
             models.push({
               id: model.name,
-              name: `${model.name} (Ollama)`,
+              name: model.name,
               provider: 'ollama'
             });
           });
@@ -49,18 +79,20 @@ export async function GET() {
       console.log('Ollama not available:', ollamaError);
     }
 
-    // Sort models by name
-    models.sort((a, b) => a.name.localeCompare(b.name));
-
     return NextResponse.json({ models });
   } catch (error) {
     console.error('Error fetching models:', error);
     return NextResponse.json(
       { 
         models: [
-          { id: 'openai/gpt-oss-20b:free', name: 'GPT OSS 20B (OpenRouter)', provider: 'openrouter' },
-          { id: 'google/gemini-2.0-flash-exp:free', name: 'Gemini 2.0 Flash (OpenRouter)', provider: 'openrouter' },
-          { id: 'x-ai/grok-4.1-fast:free', name: 'Grok 4.1 Fast (OpenRouter)', provider: 'openrouter' }
+          { id: 'arcee-ai/trinity-large-preview:free', name: 'Trinity Large Preview', provider: 'openrouter' },
+          { id: 'stepfun/step-3.5-flash:free', name: 'Step 3.5 Flash', provider: 'openrouter' },
+          { id: 'z-ai/glm-4.5-air:free', name: 'GLM 4.5 Air', provider: 'openrouter' },
+          { id: 'deepseek/deepseek-r1-0528:free', name: 'DeepSeek R1 0528', provider: 'openrouter' },
+          { id: 'nvidia/nemotron-3-nano-30b-a3b:free', name: 'Nemotron 3 Nano 30B A3B', provider: 'openrouter' },
+          { id: 'openai/gpt-oss-120b:free', name: 'GPT OSS 120B', provider: 'openrouter' },
+          { id: 'meta-llama/llama-3.3-70b-instruct:free', name: 'Llama 3.3 70B Instruct', provider: 'openrouter' },
+          { id: 'cognitivecomputations/dolphin-mistral-24b-venice-edition:free', name: 'Dolphin Mistral 24B Venice Edition', provider: 'openrouter' }
         ]
       },
       { status: 200 }

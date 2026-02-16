@@ -1,6 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
+import pdfParse from 'pdf-parse-fork';
 
-const pdfParse = require('pdf-parse-fork');
+function normalizeOpenRouterApiKey(rawApiKey: string): string {
+  return rawApiKey.trim().replace(/^Bearer\s+/i, '');
+}
+
+function isLikelyOpenRouterApiKey(apiKey: string): boolean {
+  return /^sk-or-v1-[A-Za-z0-9._-]+$/.test(apiKey);
+}
+
+function isValidAbsoluteHttpUrl(value: string): boolean {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -8,7 +24,7 @@ export async function POST(request: NextRequest) {
     const file = formData.get('file') as File;
     const model = formData.get('model') as string || 'openai/gpt-oss-20b:free';
     const provider = formData.get('provider') as string || 'openrouter';
-    const apiKey = formData.get('apiKey') as string || '';
+    const rawApiKey = typeof formData.get('apiKey') === 'string' ? formData.get('apiKey') as string : '';
 
     if (!file) {
       return NextResponse.json(
@@ -132,6 +148,8 @@ ${resumeText}`,
 
     } else {
       // Use OpenRouter API
+      const apiKey = normalizeOpenRouterApiKey(rawApiKey);
+
       if (!apiKey) {
         return NextResponse.json(
           { error: 'OpenRouter API key is required' },
@@ -139,14 +157,27 @@ ${resumeText}`,
         );
       }
 
+      if (!isLikelyOpenRouterApiKey(apiKey)) {
+        return NextResponse.json(
+          { error: 'Invalid OpenRouter API key format. It should start with "sk-or-v1-".' },
+          { status: 400 }
+        );
+      }
+
+      const headers: Record<string, string> = {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json; charset=utf-8',
+        'X-Title': 'ATS Resume Scorer'
+      };
+
+      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+      if (siteUrl && isValidAbsoluteHttpUrl(siteUrl)) {
+        headers['HTTP-Referer'] = siteUrl;
+      }
+
       const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
         method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json; charset=utf-8',
-          'HTTP-Referer': process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000',
-          'X-Title': 'ATS Resume Scorer'
-        },
+        headers,
         body: JSON.stringify({
           model: model,
           messages: [
@@ -191,9 +222,34 @@ ${resumeText}`
       if (!response.ok) {
         const errorText = await response.text();
         console.error('OpenRouter API error:', errorText);
+
+        let errorMessage = 'Failed to analyze resume with AI';
+        let statusCode = 500;
+
+        try {
+          const parsedError = JSON.parse(errorText);
+          const upstreamMessage = parsedError?.error?.message;
+          const combinedMessage = `${upstreamMessage || ''} ${errorText}`.toLowerCase();
+
+          if (
+            response.status === 401 ||
+            response.status === 403 ||
+            /clerk|auth|authenticate|invalid\s*api\s*key|unauthoriz/.test(combinedMessage)
+          ) {
+            errorMessage = 'OpenRouter authentication failed. Please verify your API key.';
+            statusCode = 401;
+          }
+        } catch {
+          const lowerText = errorText.toLowerCase();
+          if (/clerk|auth|authenticate|invalid\s*api\s*key|unauthoriz/.test(lowerText)) {
+            errorMessage = 'OpenRouter authentication failed. Please verify your API key.';
+            statusCode = 401;
+          }
+        }
+
         return NextResponse.json(
-          { error: 'Failed to analyze resume with AI' },
-          { status: 500 }
+          { error: errorMessage },
+          { status: statusCode }
         );
       }
 
